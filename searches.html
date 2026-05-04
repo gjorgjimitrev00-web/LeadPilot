@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Previous Searches - LeadPilot</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app search-history-app">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="logo-mark" aria-hidden="true">
+            <span></span>
+          </div>
+          <div class="brand-block">
+            <p class="eyebrow">Search history</p>
+            <h1>Previous Searches</h1>
+            <p class="subtitle">Review saved categories, locations, progress, and jump back into the next lead batch.</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div id="accountStatus" class="source-pill">Backend offline</div>
+          <a class="ghost-button" href="/app.html">Dashboard</a>
+          <a id="loginLink" class="ghost-button" href="/auth.html">Login</a>
+          <a class="ghost-button" href="/#pricing">Pricing</a>
+          <button id="billingButton" class="ghost-button hidden" type="button">Billing</button>
+          <button id="logoutButton" class="ghost-button hidden" type="button">Log out</button>
+        </div>
+      </header>
+
+      <section class="subscription-notice" aria-live="polite">
+        <p id="searchesNotice">Loading your saved searches...</p>
+      </section>
+
+      <section class="summary-strip search-history-summary" aria-label="Saved search summary">
+        <div class="summary-card summary-total">
+          <span>Saved searches</span>
+          <strong id="savedSearchCount">0</strong>
+        </div>
+        <div class="summary-card summary-email">
+          <span>Leads already shown</span>
+          <strong id="seenLeadCount">0</strong>
+        </div>
+        <div class="summary-card summary-phone">
+          <span>Last result batches</span>
+          <strong id="lastBatchCount">0</strong>
+        </div>
+        <div class="summary-card summary-gap">
+          <span>Fresh cycles</span>
+          <strong id="resetCount">0</strong>
+        </div>
+      </section>
+
+      <section class="results-panel saved-searches-panel" aria-label="Previous saved searches">
+        <div class="results-header searches-header">
+          <div>
+            <p class="section-kicker">Saved progress</p>
+            <h2>Previous searches</h2>
+          </div>
+          <a class="ghost-button" href="/app.html">New search</a>
+        </div>
+        <div class="table-wrap">
+          <table class="saved-searches-table">
+            <thead>
+              <tr>
+                <th>Search</th>
+                <th>Location</th>
+                <th>Radius</th>
+                <th>Leads shown</th>
+                <th>Last batch</th>
+                <th>Updated</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="savedSearchesBody">
+              <tr class="empty-row">
+                <td colspan="7">Loading previous searches...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="footnote">
+        Saved searches only appear after you run a dashboard search with progress saving enabled.
+      </footer>
+    </main>
+
+    <script src="./searches.js" defer></script>
+  </body>
+</html>

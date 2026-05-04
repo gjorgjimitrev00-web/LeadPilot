@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - LeadPilot</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="auth-page">
+    <main class="auth-shell">
+      <a class="landing-brand" href="/">
+        <span class="logo-mark" aria-hidden="true"><span></span></span>
+        <span>LeadPilot</span>
+      </a>
+
+      <section class="auth-card">
+        <div>
+          <p class="section-kicker">Account</p>
+          <h1 id="authTitle">Create your account</h1>
+          <p id="authIntro">Start with free monthly test searches, then upgrade when you need volume.</p>
+        </div>
+
+        <div class="auth-tabs" role="tablist" aria-label="Auth mode">
+          <button id="signupTab" type="button">Sign up</button>
+          <button id="loginTab" type="button">Login</button>
+        </div>
+
+        <form id="authForm" class="auth-form">
+          <label>
+            <span>Email</span>
+            <input id="authEmail" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="authPassword" type="password" autocomplete="current-password" required minlength="8" />
+          </label>
+          <button id="authSubmit" class="primary-button" type="submit">Create account</button>
+        </form>
+
+        <p id="authStatus" class="auth-status">Supabase authentication powers sign-up and login.</p>
+      </section>
+    </main>
+
+    <script src="./auth.js" defer></script>
+  </body>
+</html>

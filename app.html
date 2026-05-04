@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Client Contact Finder</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="logo-mark" aria-hidden="true">
+            <span></span>
+          </div>
+          <div class="brand-block">
+            <p class="eyebrow">Lead research</p>
+            <h1>Client Contact Finder</h1>
+            <p class="subtitle">Build local prospect lists with contacts, website status, and Quo-ready CSV export.</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div id="accountStatus" class="source-pill">Backend offline</div>
+          <a class="ghost-button" href="/searches.html">Previous searches</a>
+          <a id="loginLink" class="ghost-button" href="/auth.html">Login</a>
+          <a class="ghost-button" href="/#pricing">Pricing</a>
+          <button id="billingButton" class="ghost-button hidden" type="button">Billing</button>
+          <button id="logoutButton" class="ghost-button hidden" type="button">Log out</button>
+          <div class="source-pill source-pill-strong">CSV export ready</div>
+        </div>
+      </header>
+
+      <section class="subscription-notice" aria-live="polite">
+        <p id="subscriptionNotice">Run this through the SaaS server to enable accounts and Stripe billing.</p>
+      </section>
+
+      <div class="workspace-grid">
+        <section class="search-panel" aria-label="Search filters">
+          <div class="panel-header">
+            <div>
+              <p class="section-kicker">Search setup</p>
+              <h2>Find qualified local leads</h2>
+              <p>Progressive search checks nearby matches first, then expands only as needed.</p>
+            </div>
+          </div>
+
+          <form id="searchForm" class="search-grid">
+            <label class="field field-wide">
+              <span>Category</span>
+              <input
+                id="category"
+                name="category"
+                type="text"
+                placeholder="dentist, cafe, plumber, hotel..."
+                value="dentist"
+                required
+              />
+            </label>
+
+            <label class="field field-wide">
+              <span>Location</span>
+              <input
+                id="location"
+                name="location"
+                type="text"
+                placeholder="Skopje, Macedonia"
+                value="Skopje"
+                required
+              />
+            </label>
+
+            <label>
+              <span>Radius</span>
+              <select id="radius" name="radius">
+                <option value="1000">1 km</option>
+                <option value="3000" selected>3 km</option>
+                <option value="5000">5 km</option>
+                <option value="10000">10 km</option>
+                <option value="20000">20 km</option>
+                <option value="50000">50 km</option>
+                <option value="100000">100 km</option>
+                <option value="250000">250 km</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Limit</span>
+              <select id="limit" name="limit">
+                <option value="25">25</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="500">500</option>
+                <option value="1000">1,000</option>
+                <option value="2000">2,000</option>
+                <option value="3000">3,000</option>
+              </select>
+            </label>
+
+            <button class="primary-button" type="submit">
+              <span class="search-icon" aria-hidden="true"></span>
+              Find clients
+            </button>
+
+            <label class="check search-option">
+              <input id="saveSearchProgress" type="checkbox" checked />
+              <span>Save this search and show new results next time</span>
+            </label>
+          </form>
+
+          <div class="filter-row" aria-label="Result filters">
+            <span class="filter-label">Filters</span>
+            <label class="check">
+              <input id="withEmail" type="checkbox" />
+              <span>Email</span>
+            </label>
+            <label class="check">
+              <input id="withPhone" type="checkbox" />
+              <span>Phone</span>
+            </label>
+            <label class="check">
+              <input id="withWebsite" type="checkbox" />
+              <span>Website listed</span>
+            </label>
+            <label class="check">
+              <input id="withoutWebsite" type="checkbox" />
+              <span>No website listed</span>
+            </label>
+          </div>
+        </section>
+
+        <aside class="export-panel" aria-label="Export settings">
+          <div>
+            <p class="section-kicker">Export</p>
+            <h2>Prepare contacts</h2>
+            <p>Choose the CSV format and phone country code before exporting your filtered results.</p>
+          </div>
+          <label class="export-field">
+            <span>CSV format</span>
+            <select id="exportFormat">
+              <option value="lead">Lead list</option>
+              <option value="quo">Quo contacts</option>
+            </select>
+          </label>
+          <label class="export-field country-field">
+            <span>Country code</span>
+            <input id="countryCode" type="text" value="+1" inputmode="tel" />
+          </label>
+          <button id="exportCsv" class="secondary-button" type="button" disabled>
+            <span class="export-icon" aria-hidden="true"></span>
+            Export CSV
+          </button>
+        </aside>
+      </div>
+
+      <section class="summary-strip" aria-label="Search summary">
+        <div class="summary-card summary-total">
+          <span>Results</span>
+          <strong id="totalCount">0</strong>
+        </div>
+        <div class="summary-card summary-email">
+          <span>Emails</span>
+          <strong id="emailCount">0</strong>
+        </div>
+        <div class="summary-card summary-phone">
+          <span>Phones</span>
+          <strong id="phoneCount">0</strong>
+        </div>
+        <div class="summary-card summary-gap">
+          <span>No website listing</span>
+          <strong id="missingWebsiteCount">0</strong>
+        </div>
+      </section>
+
+      <section class="status-area" aria-live="polite">
+        <p id="statusText">Ready.</p>
+      </section>
+
+      <section class="results-panel" aria-label="Client results">
+        <div class="results-header">
+          <div>
+            <p class="section-kicker">Pipeline</p>
+            <h2>Lead results</h2>
+          </div>
+          <span class="table-badge">Ranked by contact quality</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Business</th>
+                <th>Category</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Website</th>
+                <th>Address</th>
+                <th>Distance</th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr class="empty-row">
+                <td colspan="7">Search a category and location to build a lead list.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="footnote">
+        Public map tags may be incomplete. Verify missing websites and contact details before outreach.
+      </footer>
+    </main>
+
+    <script src="./lead-filters.js" defer></script>
+    <script src="./app.js" defer></script>
+  </body>
+</html>

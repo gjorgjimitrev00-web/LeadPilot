@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LeadPilot - Local lead finder SaaS</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="landing-page">
+    <header class="landing-nav">
+      <a class="landing-brand" href="/">
+        <span class="logo-mark" aria-hidden="true"><span></span></span>
+        <span>LeadPilot</span>
+      </a>
+      <nav aria-label="Landing navigation">
+        <a href="#workflow">Workflow</a>
+        <a href="#data">Data</a>
+        <a href="#pricing">Pricing</a>
+        <a id="navAuthLink" href="/auth.html">Login</a>
+        <a id="navCtaLink" class="nav-cta" href="/auth.html?mode=signup">Start free</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="live-demo" class="hero-section">
+        <div class="hero-demo-canvas" aria-label="Interactive product preview">
+          <div class="demo-shell">
+            <div class="demo-topline">
+              <span>Example search preview</span>
+              <strong id="demoQuery">Dentists in New York</strong>
+            </div>
+            <div class="demo-controls" aria-label="Sample searches">
+              <button class="sample-chip is-active" type="button" data-sample-index="0">Dentists</button>
+              <button class="sample-chip" type="button" data-sample-index="1">Cafes</button>
+              <button class="sample-chip" type="button" data-sample-index="2">Hotels</button>
+            </div>
+            <div class="demo-metrics">
+              <article>
+                <span>Results</span>
+                <strong id="demoResults">184</strong>
+              </article>
+              <article>
+                <span>Phones</span>
+                <strong id="demoPhones">62</strong>
+              </article>
+              <article>
+                <span>No website</span>
+                <strong id="demoNoWebsite">71</strong>
+              </article>
+            </div>
+            <div class="demo-map">
+              <span class="map-pin pin-one"></span>
+              <span class="map-pin pin-two"></span>
+              <span class="map-pin pin-three"></span>
+              <span class="map-route"></span>
+            </div>
+            <div class="demo-results" id="demoRows" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="hero-copy">
+          <p class="section-kicker">Lead generation SaaS</p>
+          <h1>LeadPilot</h1>
+          <p class="hero-lede">
+            Find local businesses by category and city, identify missing websites, collect public contact data,
+            and export clean CSV files for sales outreach.
+          </p>
+          <div class="hero-actions">
+            <a class="hero-primary" href="/auth.html?mode=signup">Create account</a>
+            <a class="hero-secondary" href="/app.html">Open dashboard</a>
+          </div>
+          <div class="hero-proof" aria-label="Product highlights">
+            <span>Email + phone extraction</span>
+            <span>No-website opportunities</span>
+            <span>Quo-ready CSV export</span>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" class="landing-section workflow-section">
+        <div class="section-heading">
+          <p class="section-kicker">Workflow</p>
+          <h2>From local search to outreach list in minutes</h2>
+          <p>LeadPilot turns public business listings into a filtered prospect pipeline for agencies and sales teams.</p>
+        </div>
+        <div class="workflow-grid">
+          <article>
+            <span>01</span>
+            <h3>Choose a market</h3>
+            <p>Search by category, city, radius, and limit. Start narrow or expand to larger regions when you need volume.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Rank useful leads</h3>
+            <p>Results are deduped and sorted by contact quality, with website status highlighted for quick offers.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <h3>Export and follow up</h3>
+            <p>Download a research CSV or a Quo-ready contact file with normalized phone country codes.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="data" class="landing-section data-section">
+        <div class="section-heading">
+          <p class="section-kicker">Data you get</p>
+          <h2>Contact fields that help you decide who to pitch</h2>
+        </div>
+        <div class="data-layout">
+          <div class="data-grid">
+            <article><strong>Email</strong><span>Public emails from business tags.</span></article>
+            <article><strong>Phone</strong><span>Phone and mobile fields ready for filtering.</span></article>
+            <article><strong>Website status</strong><span>Spot businesses with no listed website.</span></article>
+            <article><strong>Address</strong><span>Street, city, distance, and source link.</span></article>
+            <article><strong>Saved progress</strong><span>Repeat the same search and move to new leads.</span></article>
+            <article><strong>CSV export</strong><span>Lead list and Quo contacts formats.</span></article>
+          </div>
+          <div class="data-table-preview">
+            <div class="table-preview-row table-preview-head">
+              <span>Business</span><span>Phone</span><span>Website</span>
+            </div>
+            <div class="table-preview-row">
+              <span>Smile Studio</span><span>+389...</span><strong>No site</strong>
+            </div>
+            <div class="table-preview-row">
+              <span>Nova Clinic</span><span>Listed</span><strong>Has site</strong>
+            </div>
+            <div class="table-preview-row">
+              <span>Dental Art</span><span>+389...</span><strong>No site</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="audience" class="landing-section audience-section">
+        <div class="section-heading">
+          <p class="section-kicker">Built for prospecting</p>
+          <h2>Use it where local business data creates revenue</h2>
+        </div>
+        <div class="audience-grid">
+          <article>
+            <h3>Web design agencies</h3>
+            <p>Find businesses without websites and build targeted redesign campaigns by city.</p>
+          </article>
+          <article>
+            <h3>Marketing teams</h3>
+            <p>Create local lists for SEO, ads, listings cleanup, and reputation management outreach.</p>
+          </article>
+          <article>
+            <h3>Sales operators</h3>
+            <p>Research categories repeatedly without wasting time on the same returned records.</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="saved-searches" class="landing-section saved-section">
+        <div>
+          <p class="section-kicker">Saved search progress</p>
+          <h2>Same search, next batch</h2>
+          <p>
+            When a user searches the same category, city, and radius again, LeadPilot remembers which leads
+            were already shown and moves forward to the next available records.
+          </p>
+        </div>
+        <div class="saved-steps" aria-label="Saved search sequence">
+          <span>Search dentists in New York</span>
+          <span>Save served lead IDs</span>
+          <span>Skip repeats next time</span>
+          <span>Reset when exhausted</span>
+        </div>
+      </section>
+
+      <section id="pricing" class="landing-section">
+        <div class="section-heading">
+          <p class="section-kicker">Pricing</p>
+          <h2>Plans for solo sellers and agencies</h2>
+          <p>Start with a simple tier, then grow into higher search volume as your outreach process scales.</p>
+        </div>
+        <div class="pricing-grid landing-pricing">
+          <article class="pricing-card">
+            <div>
+              <h3>Starter</h3>
+              <p>For solo prospecting and small local campaigns.</p>
+            </div>
+            <strong>$19/mo</strong>
+            <span>200 searches/month</span>
+            <a class="plan-link" href="/auth.html?mode=signup&plan=starter">Start Starter</a>
+          </article>
+          <article class="pricing-card pricing-card-featured">
+            <div>
+              <h3>Growth</h3>
+              <p>For agencies and growing sales teams.</p>
+            </div>
+            <strong>$39/mo</strong>
+            <span>1,000 searches/month</span>
+            <a class="plan-link" href="/auth.html?mode=signup&plan=growth">Start Growth</a>
+          </article>
+          <article class="pricing-card">
+            <div>
+              <h3>Agency</h3>
+              <p>For higher-volume client acquisition.</p>
+            </div>
+            <strong>$99/mo</strong>
+            <span>3,000 searches/month</span>
+            <a class="plan-link" href="/auth.html?mode=signup&plan=agency">Start Agency</a>
+          </article>
+        </div>
+      </section>
+
+      <section id="faq" class="landing-section faq-section">
+        <div class="section-heading">
+          <p class="section-kicker">FAQ</p>
+          <h2>Questions before launch</h2>
+        </div>
+        <div class="faq-list">
+          <article class="faq-item">
+            <button type="button" aria-expanded="false">Where does the lead data come from?</button>
+            <p>LeadPilot reads public business data from map records and shows only what is publicly listed.</p>
+          </article>
+          <article class="faq-item">
+            <button type="button" aria-expanded="false">Can users export to Quo?</button>
+            <p>Yes. The dashboard includes a Quo contacts CSV format and a country-code field for phone cleanup.</p>
+          </article>
+          <article class="faq-item">
+            <button type="button" aria-expanded="false">Does billing work?</button>
+            <p>The app is wired for Stripe Checkout, Stripe Billing Portal, and Supabase-backed subscription status.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="landing-section final-cta">
+        <p class="section-kicker">Ready to prospect</p>
+        <h2>Turn local categories into client lists.</h2>
+        <div class="hero-actions">
+          <a class="hero-primary" href="/auth.html?mode=signup">Start free</a>
+          <a class="hero-secondary" href="/app.html">View dashboard</a>
+        </div>
+      </section>
+    </main>
+
+    <script src="./landing.js" defer></script>
+  </body>
+</html>

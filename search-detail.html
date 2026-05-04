@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saved Search - LeadPilot</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app search-history-app">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="logo-mark" aria-hidden="true">
+            <span></span>
+          </div>
+          <div class="brand-block">
+            <p class="eyebrow">Saved Search</p>
+            <h1 id="detailTitle">Saved Search</h1>
+            <p id="detailSubtitle" class="subtitle">Loading saved search details...</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div id="accountStatus" class="source-pill">Backend offline</div>
+          <a class="ghost-button" href="/searches.html">Previous searches</a>
+          <a class="ghost-button" href="/app.html">Dashboard</a>
+          <a id="loginLink" class="ghost-button" href="/auth.html">Login</a>
+          <button id="billingButton" class="ghost-button hidden" type="button">Billing</button>
+          <button id="logoutButton" class="ghost-button hidden" type="button">Log out</button>
+        </div>
+      </header>
+
+      <section class="subscription-notice" aria-live="polite">
+        <p id="detailNotice">Loading saved leads...</p>
+      </section>
+
+      <section class="search-detail-meta" aria-label="Saved search details">
+        <div id="detailMeta" class="detail-meta-grid">
+          <span class="source-pill">Category: -</span>
+          <span class="source-pill">Location: -</span>
+          <span class="source-pill">Radius: -</span>
+          <span class="source-pill">Updated: -</span>
+        </div>
+        <div class="detail-actions">
+          <a id="runAgainLink" class="primary-button" href="/app.html">Run again</a>
+          <a class="ghost-button" href="/searches.html">Back to list</a>
+        </div>
+      </section>
+
+      <section class="summary-strip search-history-summary" aria-label="Saved lead summary">
+        <div class="summary-card summary-total">
+          <span>Saved leads</span>
+          <strong id="detailLeadCount">0</strong>
+        </div>
+        <div class="summary-card summary-email">
+          <span>Emails</span>
+          <strong id="detailEmailCount">0</strong>
+        </div>
+        <div class="summary-card summary-phone">
+          <span>Phones</span>
+          <strong id="detailPhoneCount">0</strong>
+        </div>
+        <div class="summary-card summary-gap">
+          <span>No website listing</span>
+          <strong id="detailMissingWebsiteCount">0</strong>
+        </div>
+      </section>
+
+      <section class="results-panel saved-searches-panel" aria-label="Saved lead results">
+        <div class="results-header searches-header">
+          <div>
+            <p class="section-kicker">Stored batch</p>
+            <h2>Saved leads</h2>
+          </div>
+          <span class="table-badge">Last shown results</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Business</th>
+                <th>Category</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Website</th>
+                <th>Address</th>
+                <th>Distance</th>
+              </tr>
+            </thead>
+            <tbody id="savedLeadsBody">
+              <tr class="empty-row">
+                <td colspan="7">Loading saved leads...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="footnote">
+        This view shows the last lead batch saved for this search. Use Run again to fetch the next batch.
+      </footer>
+    </main>
+
+    <script src="./search-detail.js" defer></script>
+  </body>
+</html>
