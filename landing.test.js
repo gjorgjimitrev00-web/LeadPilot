@@ -37,12 +37,12 @@ test("paid plans use the reduced monthly search allowances", () => {
   const html = fs.readFileSync("index.html", "utf8");
   const server = fs.readFileSync("server.js", "utf8");
 
-  assert.match(html, /60 searches\/month/);
-  assert.match(html, /300 searches\/month/);
-  assert.match(html, /900 searches\/month/);
-  assert.match(server, /id: "starter"[\s\S]*?searchLimit: 60/);
-  assert.match(server, /id: "growth"[\s\S]*?searchLimit: 300/);
-  assert.match(server, /id: "agency"[\s\S]*?searchLimit: 900/);
+  assert.match(html, /30 searches\/month/);
+  assert.match(html, /150 searches\/month/);
+  assert.match(html, /450 searches\/month/);
+  assert.match(server, /id: "starter"[\s\S]*?searchLimit: 30/);
+  assert.match(server, /id: "growth"[\s\S]*?searchLimit: 150/);
+  assert.match(server, /id: "agency"[\s\S]*?searchLimit: 450/);
 });
 
 test("landing script exposes sample search data and FAQ behavior", () => {

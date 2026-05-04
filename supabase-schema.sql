@@ -6,8 +6,12 @@ create table if not exists public.profiles (
   subscription_status text not null default 'free',
   stripe_customer_id text,
   stripe_subscription_id text,
+  trial_started_at timestamptz,
+  trial_ends_at timestamptz,
   searches_used integer not null default 0,
   usage_period text not null,
+  daily_searches_used integer not null default 0,
+  daily_usage_date text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -21,6 +25,20 @@ alter table public.profiles
 
 create index if not exists profiles_role_idx
   on public.profiles(role);
+
+alter table public.profiles
+  add column if not exists trial_started_at timestamptz,
+  add column if not exists trial_ends_at timestamptz,
+  add column if not exists daily_searches_used integer not null default 0,
+  add column if not exists daily_usage_date text;
+
+update public.profiles
+set
+  trial_started_at = coalesce(trial_started_at, now()),
+  trial_ends_at = coalesce(trial_ends_at, coalesce(trial_started_at, now()) + interval '3 days'),
+  daily_usage_date = coalesce(daily_usage_date, to_char(now() at time zone 'UTC', 'YYYY-MM-DD'))
+where subscription_status not in ('active', 'trialing')
+  and (trial_started_at is null or trial_ends_at is null or daily_usage_date is null);
 
 create table if not exists public.subscriptions (
   subscription_id text primary key,

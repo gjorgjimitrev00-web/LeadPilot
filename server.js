@@ -42,8 +42,8 @@ const PLANS = [
     id: "starter",
     name: "Starter",
     priceLabel: "$19/mo",
-    searchLimit: 60,
-    exportLimit: 60,
+    searchLimit: 30,
+    exportLimit: 30,
     priceEnv: "STRIPE_PRICE_STARTER",
     description: "For solo prospecting and small local campaigns.",
   },
@@ -51,8 +51,8 @@ const PLANS = [
     id: "growth",
     name: "Growth",
     priceLabel: "$39/mo",
-    searchLimit: 300,
-    exportLimit: 300,
+    searchLimit: 150,
+    exportLimit: 150,
     priceEnv: "STRIPE_PRICE_GROWTH",
     description: "For agencies and growing sales teams.",
   },
@@ -60,14 +60,16 @@ const PLANS = [
     id: "agency",
     name: "Agency",
     priceLabel: "$99/mo",
-    searchLimit: 900,
-    exportLimit: 900,
+    searchLimit: 450,
+    exportLimit: 450,
     priceEnv: "STRIPE_PRICE_AGENCY",
     description: "For higher-volume client acquisition.",
   },
 ];
 
-const FREE_LIMIT = 3;
+const TRIAL_DAYS = 3;
+const TRIAL_DAILY_SEARCH_LIMIT = 3;
+const FREE_RESULT_LIMIT = 50;
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
 
 const OVERPASS_ENDPOINTS = [
@@ -285,7 +287,7 @@ async function handleApi(req, res, url) {
 
     if (!canSearch(user.profile)) {
       return json(res, 402, {
-        error: "Upgrade to continue searching leads this month.",
+        error: getSearchLimitMessage(user.profile),
         user: publicUser(user.profile, user.authUser),
       });
     }
@@ -294,7 +296,7 @@ async function handleApi(req, res, url) {
     const category = clean(body.category);
     const location = clean(body.location);
     const radius = clampNumber(body.radius, 1000, 250000, 3000);
-    const limit = Math.min(clampNumber(body.limit, 25, 3000, 50), getPlanLimit(user.profile));
+    const limit = Math.min(clampNumber(body.limit, 25, 3000, 50), getResultLimit(user.profile));
 
     if (!category || !location) {
       return json(res, 400, { error: "Category and location are required." });
@@ -357,6 +359,8 @@ async function handleApi(req, res, url) {
 
     user.profile = await updateProfile(user.profile.user_id, {
       searches_used: (user.profile.searches_used || 0) + 1,
+      daily_searches_used: (user.profile.daily_searches_used || 0) + 1,
+      daily_usage_date: currentUsageDate(),
       usage_period: user.profile.usage_period,
     });
 
@@ -577,15 +581,26 @@ function publicPlans() {
 function publicUser(profile, authUser) {
   const currentProfile = resetUsageIfNeeded(profile);
   const isAdmin = isAdminUser(currentProfile, authUser);
+  const hasSubscription = hasActiveSubscription(currentProfile);
+  const trialActive = isTrialActive(currentProfile);
   return {
     email: authUser.email || currentProfile.email,
     role: isAdmin ? "admin" : currentProfile.role || "user",
     isAdmin: isAdminUser(currentProfile, authUser),
     planId: currentProfile.plan_id || "free",
     subscriptionStatus: currentProfile.subscription_status || "free",
-    searchesUsed: currentProfile.searches_used || 0,
-    searchLimit: getPlanLimit(currentProfile),
-    hasActiveSubscription: hasActiveSubscription(currentProfile),
+    searchesUsed: hasSubscription
+      ? currentProfile.searches_used || 0
+      : currentProfile.daily_searches_used || 0,
+    monthlySearchesUsed: currentProfile.searches_used || 0,
+    dailySearchesUsed: currentProfile.daily_searches_used || 0,
+    searchLimit: getSearchQuotaLimit(currentProfile),
+    resultLimit: getResultLimit(currentProfile),
+    quotaPeriod: hasSubscription ? "month" : "day",
+    trialActive,
+    trialDaysRemaining: getTrialDaysRemaining(currentProfile),
+    trialEndsAt: currentProfile.trial_ends_at || "",
+    hasActiveSubscription: hasSubscription,
     canSearch: canSearch(currentProfile),
   };
 }
@@ -666,7 +681,7 @@ async function getSupabaseUser(accessToken) {
 
 async function ensureProfile(authUser) {
   const existing = await getProfile(authUser.id);
-  if (existing) return resetUsageIfNeeded(existing);
+  if (existing) return await normalizeExistingProfile(existing);
 
   const [created] = await supabaseRest("profiles", {
     method: "POST",
@@ -676,7 +691,32 @@ async function ensureProfile(authUser) {
   return resetUsageIfNeeded(created);
 }
 
+async function normalizeExistingProfile(profile) {
+  const currentProfile = resetUsageIfNeeded(profile);
+  const updates = {};
+
+  if (currentProfile.usage_period !== profile.usage_period) {
+    updates.usage_period = currentProfile.usage_period;
+    updates.searches_used = currentProfile.searches_used;
+  }
+
+  if (currentProfile.daily_usage_date !== profile.daily_usage_date) {
+    updates.daily_usage_date = currentProfile.daily_usage_date;
+    updates.daily_searches_used = currentProfile.daily_searches_used;
+  }
+
+  if (!hasActiveSubscription(currentProfile) && (!currentProfile.trial_started_at || !currentProfile.trial_ends_at)) {
+    const now = new Date();
+    updates.trial_started_at = currentProfile.trial_started_at || now.toISOString();
+    updates.trial_ends_at = currentProfile.trial_ends_at || addDays(now, TRIAL_DAYS).toISOString();
+  }
+
+  if (!Object.keys(updates).length) return currentProfile;
+  return await updateProfile(currentProfile.user_id, updates);
+}
+
 function defaultProfile(authUser) {
+  const now = new Date();
   return {
     user_id: authUser.id,
     email: authUser.email || "",
@@ -685,8 +725,12 @@ function defaultProfile(authUser) {
     subscription_status: "free",
     stripe_customer_id: "",
     stripe_subscription_id: "",
+    trial_started_at: now.toISOString(),
+    trial_ends_at: addDays(now, TRIAL_DAYS).toISOString(),
     searches_used: 0,
     usage_period: currentUsagePeriod(),
+    daily_searches_used: 0,
+    daily_usage_date: currentUsageDate(),
     updated_at: new Date().toISOString(),
   };
 }
@@ -720,7 +764,7 @@ async function updateProfile(userId, fields) {
 
 async function listAdminProfiles(limit = 500) {
   return supabaseRest("profiles", {
-    query: `select=user_id,email,role,plan_id,subscription_status,stripe_customer_id,stripe_subscription_id,searches_used,usage_period,created_at,updated_at&order=created_at.desc&limit=${limit}`,
+    query: `select=user_id,email,role,plan_id,subscription_status,stripe_customer_id,stripe_subscription_id,trial_started_at,trial_ends_at,searches_used,usage_period,daily_searches_used,daily_usage_date,created_at,updated_at&order=created_at.desc&limit=${limit}`,
   });
 }
 
@@ -774,7 +818,7 @@ function buildPlanBreakdown(profiles) {
   }));
 
   return [
-    { id: "free", name: "Free", users: freeUsers, searchLimit: 50, priceLabel: "$0/mo" },
+    { id: "trial", name: "Trial", users: freeUsers, searchLimit: TRIAL_DAILY_SEARCH_LIMIT, priceLabel: "$0 / 3 days" },
     ...paidPlans,
   ];
 }
@@ -782,16 +826,22 @@ function buildPlanBreakdown(profiles) {
 function publicAdminUser(profile) {
   const currentProfile = resetUsageIfNeeded(profile);
   const plan = PLANS.find((item) => item.id === currentProfile.plan_id);
+  const hasSubscription = hasActiveSubscription(currentProfile);
+  const trialActive = isTrialActive(currentProfile);
   return {
     id: currentProfile.user_id,
     email: currentProfile.email || "",
     role: isAdminEmail(currentProfile.email) ? "admin" : currentProfile.role || "user",
     isAdmin: isAdminUser(currentProfile, { email: currentProfile.email }),
     planId: currentProfile.plan_id || "free",
-    planName: plan?.name || (hasActiveSubscription(currentProfile) ? "Paid" : "Free"),
+    planName: plan?.name || (hasSubscription ? "Paid" : trialActive ? "Trial" : "Expired trial"),
     subscriptionStatus: currentProfile.subscription_status || "free",
-    searchesUsed: Number(currentProfile.searches_used || 0),
+    searchesUsed: Number(hasSubscription ? currentProfile.searches_used || 0 : currentProfile.daily_searches_used || 0),
     searchLimit: getPlanLimit(currentProfile),
+    quotaPeriod: hasSubscription ? "month" : "day",
+    dailySearchesUsed: Number(currentProfile.daily_searches_used || 0),
+    trialActive,
+    trialDaysRemaining: getTrialDaysRemaining(currentProfile),
     usagePeriod: currentProfile.usage_period || "",
     createdAt: currentProfile.created_at || "",
     updatedAt: currentProfile.updated_at || "",
@@ -870,12 +920,53 @@ function hasActiveSubscription(profile) {
 
 function canSearch(profile) {
   const currentProfile = resetUsageIfNeeded(profile);
-  return hasActiveSubscription(currentProfile) || (currentProfile.searches_used || 0) < FREE_LIMIT;
+  if (hasActiveSubscription(currentProfile)) {
+    return (currentProfile.searches_used || 0) < getPaidSearchLimit(currentProfile);
+  }
+  return isTrialActive(currentProfile) && (currentProfile.daily_searches_used || 0) < TRIAL_DAILY_SEARCH_LIMIT;
 }
 
 function getPlanLimit(profile) {
-  if (!hasActiveSubscription(profile)) return 50;
-  return PLANS.find((plan) => plan.id === profile.plan_id)?.searchLimit || 60;
+  return getSearchQuotaLimit(profile);
+}
+
+function getSearchQuotaLimit(profile) {
+  if (!hasActiveSubscription(profile)) return TRIAL_DAILY_SEARCH_LIMIT;
+  return getPaidSearchLimit(profile);
+}
+
+function getPaidSearchLimit(profile) {
+  return PLANS.find((plan) => plan.id === profile.plan_id)?.searchLimit || 30;
+}
+
+function getResultLimit(profile) {
+  if (!hasActiveSubscription(profile)) return FREE_RESULT_LIMIT;
+  return PLANS.find((plan) => plan.id === profile.plan_id)?.exportLimit || 30;
+}
+
+function isTrialActive(profile) {
+  if (hasActiveSubscription(profile)) return false;
+  const endsAt = Date.parse(profile?.trial_ends_at || "");
+  return Number.isFinite(endsAt) && Date.now() < endsAt;
+}
+
+function getTrialDaysRemaining(profile) {
+  const endsAt = Date.parse(profile?.trial_ends_at || "");
+  if (!Number.isFinite(endsAt)) return 0;
+  return Math.max(0, Math.ceil((endsAt - Date.now()) / 86400000));
+}
+
+function getSearchLimitMessage(profile) {
+  const currentProfile = resetUsageIfNeeded(profile);
+  if (hasActiveSubscription(currentProfile)) {
+    return "Monthly search limit reached. Upgrade your plan to continue searching.";
+  }
+
+  if (isTrialActive(currentProfile)) {
+    return "Daily trial search limit reached. Try again tomorrow or upgrade for more searches.";
+  }
+
+  return "Your 3-day trial has expired. Upgrade to continue searching.";
 }
 
 function isAdminUser(profile, authUser) {
@@ -909,18 +1000,38 @@ function formatCurrency(cents) {
 
 function resetUsageIfNeeded(profile) {
   const period = currentUsagePeriod();
-  if (profile.usage_period !== period) {
-    return {
-      ...profile,
+  const day = currentUsageDate();
+  let currentProfile = profile;
+
+  if (currentProfile.usage_period !== period) {
+    currentProfile = {
+      ...currentProfile,
       usage_period: period,
       searches_used: 0,
     };
   }
-  return profile;
+
+  if (currentProfile.daily_usage_date !== day) {
+    currentProfile = {
+      ...currentProfile,
+      daily_usage_date: day,
+      daily_searches_used: 0,
+    };
+  }
+
+  return currentProfile;
 }
 
 function currentUsagePeriod() {
   return new Date().toISOString().slice(0, 7);
+}
+
+function currentUsageDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function addDays(date, days) {
+  return new Date(date.getTime() + days * 86400000);
 }
 
 async function supabaseAuthRequest(endpoint, options = {}) {

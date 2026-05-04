@@ -344,11 +344,23 @@ function renderSaasState() {
   const user = saasState.user;
   const statusLabel = user.hasActiveSubscription ? `${planName(user.planId)} plan` : "Free trial";
   accountStatus.textContent = `${user.email} · ${statusLabel}`;
-  subscriptionNotice.textContent = `${user.searchesUsed}/${user.searchLimit} searches used this month. ${user.canSearch ? "Search is available." : "Upgrade to continue searching."}`;
+  subscriptionNotice.textContent = buildSubscriptionNotice(user);
   adminLink?.classList.toggle("hidden", !user.isAdmin);
   loginLink.classList.add("hidden");
   logoutButton.classList.remove("hidden");
   billingButton.classList.toggle("hidden", !user.hasActiveSubscription);
+}
+
+function buildSubscriptionNotice(user) {
+  if (user.hasActiveSubscription) {
+    return `${user.searchesUsed}/${user.searchLimit} searches used this month. ${user.canSearch ? "Search is available." : "Upgrade to continue searching."}`;
+  }
+
+  if (user.trialActive) {
+    return `${user.searchesUsed}/${user.searchLimit} searches used today. ${user.trialDaysRemaining} trial day${user.trialDaysRemaining === 1 ? "" : "s"} remaining. ${user.canSearch ? "Search is available." : "Daily trial limit reached."}`;
+  }
+
+  return "Trial expired. Upgrade to continue searching.";
 }
 
 function ensureSearchAccess() {

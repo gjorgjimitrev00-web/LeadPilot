@@ -123,7 +123,7 @@ function renderSummary(summary) {
   monthlySearches.textContent = formatNumber(summary.monthlySearches);
   estimatedMrr.textContent = summary.estimatedMrrLabel || "$0";
   savedSearchesBadge.textContent = `${formatNumber(summary.savedSearches)} saved searches`;
-  freeUsersBadge.textContent = `${formatNumber(summary.freeUsers)} free users`;
+  freeUsersBadge.textContent = `${formatNumber(summary.freeUsers)} trial/free users`;
 
   planBreakdownBody.innerHTML = (summary.planBreakdown || [])
     .map((plan) => `
@@ -151,7 +151,7 @@ function renderCompactUserRow(user) {
       <td>${escapeHtml(user.email)}</td>
       <td>${escapeHtml(user.planName)}</td>
       <td>${statusTag(user.subscriptionStatus)}</td>
-      <td>${formatNumber(user.searchesUsed)} / ${formatNumber(user.searchLimit)}</td>
+      <td>${formatNumber(user.searchesUsed)} / ${formatNumber(user.searchLimit)} ${quotaLabel(user.quotaPeriod)}</td>
     </tr>
   `;
 }
@@ -168,7 +168,7 @@ function renderUserRow(user) {
       <td>${user.isAdmin ? '<span class="tag good">Admin</span>' : '<span class="tag">User</span>'}</td>
       <td>${escapeHtml(user.planName)}</td>
       <td>${statusTag(user.subscriptionStatus)}</td>
-      <td>${formatNumber(user.searchesUsed)} / ${formatNumber(user.searchLimit)}</td>
+      <td>${formatNumber(user.searchesUsed)} / ${formatNumber(user.searchLimit)} ${quotaLabel(user.quotaPeriod)}</td>
       <td>${formatDate(user.createdAt)}</td>
       <td>${formatDate(user.updatedAt)}</td>
     </tr>
@@ -213,6 +213,11 @@ function formatDate(value) {
     day: "numeric",
     year: "numeric",
   }).format(date);
+}
+
+function quotaLabel(value) {
+  if (!value) return "";
+  return `<span class="muted">/${escapeHtml(value)}</span>`;
 }
 
 function escapeHtml(value) {

@@ -69,6 +69,8 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 The server uses Supabase Auth for account creation and login. It stores account profile, usage, saved search progress, Stripe customer ID, Stripe subscription ID, plan, and subscription status in Supabase tables. Keep the service role key server-only.
 
+New registered accounts start with a 3-day trial and 3 searches per day. Paid search quotas are Starter 30/month, Growth 150/month, and Agency 450/month.
+
 ## Admin setup
 
 Create a normal account first, then make that email an admin with either option:
