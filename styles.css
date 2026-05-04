@@ -1135,8 +1135,31 @@ h2 {
   max-width: 1240px;
 }
 
+.admin-app {
+  max-width: 1380px;
+}
+
 .search-history-summary {
   margin-top: 0;
+}
+
+.admin-summary {
+  margin-top: 0;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.admin-panel {
+  min-width: 0;
+}
+
+.admin-small-table {
+  min-width: 560px;
 }
 
 .saved-searches-panel {
@@ -1723,6 +1746,10 @@ tbody tr:hover {
   }
 
   .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-grid {
     grid-template-columns: 1fr;
   }
 

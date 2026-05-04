@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - LeadPilot</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app admin-app">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="logo-mark" aria-hidden="true">
+            <span></span>
+          </div>
+          <div class="brand-block">
+            <p class="eyebrow">Admin</p>
+            <h1>Admin Dashboard</h1>
+            <p class="subtitle">Monitor users, subscriptions, monthly usage, saved searches, and plan distribution.</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <div id="accountStatus" class="source-pill">Backend offline</div>
+          <a class="ghost-button" href="/app.html">Dashboard</a>
+          <a class="ghost-button" href="/searches.html">Previous searches</a>
+          <a id="loginLink" class="ghost-button" href="/auth.html">Login</a>
+          <button id="logoutButton" class="ghost-button hidden" type="button">Log out</button>
+        </div>
+      </header>
+
+      <section class="subscription-notice" aria-live="polite">
+        <p id="adminNotice">Loading admin dashboard...</p>
+      </section>
+
+      <section class="summary-strip admin-summary" aria-label="Admin summary">
+        <div class="summary-card summary-total">
+          <span>Total users</span>
+          <strong id="totalUsers">0</strong>
+        </div>
+        <div class="summary-card summary-email">
+          <span>Paid users</span>
+          <strong id="activeSubscriptions">0</strong>
+        </div>
+        <div class="summary-card summary-phone">
+          <span>Monthly searches</span>
+          <strong id="monthlySearches">0</strong>
+        </div>
+        <div class="summary-card summary-gap">
+          <span>Est. MRR</span>
+          <strong id="estimatedMrr">$0</strong>
+        </div>
+      </section>
+
+      <div class="admin-grid">
+        <section class="results-panel admin-panel" aria-label="Plan breakdown">
+          <div class="results-header">
+            <div>
+              <p class="section-kicker">Revenue</p>
+              <h2>Plan breakdown</h2>
+            </div>
+            <span id="savedSearchesBadge" class="table-badge">0 saved searches</span>
+          </div>
+          <div class="table-wrap">
+            <table class="admin-small-table">
+              <thead>
+                <tr>
+                  <th>Plan</th>
+                  <th>Users</th>
+                  <th>Search limit</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody id="planBreakdownBody">
+                <tr class="empty-row">
+                  <td colspan="4">Loading plans...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="results-panel admin-panel" aria-label="Recent users">
+          <div class="results-header">
+            <div>
+              <p class="section-kicker">Accounts</p>
+              <h2>Recent users</h2>
+            </div>
+            <span id="freeUsersBadge" class="table-badge">0 free users</span>
+          </div>
+          <div class="table-wrap">
+            <table class="admin-small-table">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th>Used</th>
+                </tr>
+              </thead>
+              <tbody id="recentUsersBody">
+                <tr class="empty-row">
+                  <td colspan="4">Loading users...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <section class="results-panel admin-panel" aria-label="All users">
+        <div class="results-header">
+          <div>
+            <p class="section-kicker">User management</p>
+            <h2>All users</h2>
+          </div>
+          <span class="table-badge">Read-only admin view</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Plan</th>
+                <th>Status</th>
+                <th>Usage</th>
+                <th>Created</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody id="adminUsersBody">
+              <tr class="empty-row">
+                <td colspan="7">Loading users...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="footnote">
+        Admin access comes from the profile role or an email listed in ADMIN_EMAILS on the server.
+      </footer>
+    </main>
+
+    <script src="./admin.js" defer></script>
+  </body>
+</html>

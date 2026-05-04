@@ -16,17 +16,20 @@ const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || "";
 const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const ADMIN_EMAILS = parseAdminEmails(process.env.ADMIN_EMAILS || "");
 const COOKIE_OPTIONS = `HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000${APP_URL.startsWith("https://") ? "; Secure" : ""}`;
 
 const PUBLIC_FILES = new Map([
   ["/", "index.html"],
   ["/index.html", "index.html"],
   ["/app.html", "app.html"],
+  ["/admin.html", "admin.html"],
   ["/auth.html", "auth.html"],
   ["/searches.html", "searches.html"],
   ["/search-detail.html", "search-detail.html"],
   ["/styles.css", "styles.css"],
   ["/app.js", "app.js"],
+  ["/admin.js", "admin.js"],
   ["/auth.js", "auth.js"],
   ["/landing.js", "landing.js"],
   ["/lead-filters.js", "lead-filters.js"],
@@ -39,8 +42,8 @@ const PLANS = [
     id: "starter",
     name: "Starter",
     priceLabel: "$19/mo",
-    searchLimit: 200,
-    exportLimit: 200,
+    searchLimit: 60,
+    exportLimit: 60,
     priceEnv: "STRIPE_PRICE_STARTER",
     description: "For solo prospecting and small local campaigns.",
   },
@@ -48,8 +51,8 @@ const PLANS = [
     id: "growth",
     name: "Growth",
     priceLabel: "$39/mo",
-    searchLimit: 1000,
-    exportLimit: 1000,
+    searchLimit: 300,
+    exportLimit: 300,
     priceEnv: "STRIPE_PRICE_GROWTH",
     description: "For agencies and growing sales teams.",
   },
@@ -57,8 +60,8 @@ const PLANS = [
     id: "agency",
     name: "Agency",
     priceLabel: "$99/mo",
-    searchLimit: 3000,
-    exportLimit: 3000,
+    searchLimit: 900,
+    exportLimit: 900,
     priceEnv: "STRIPE_PRICE_AGENCY",
     description: "For higher-volume client acquisition.",
   },
@@ -241,6 +244,33 @@ async function handleApi(req, res, url) {
     }
     clearAuthCookies(res);
     return json(res, 200, { ok: true });
+  }
+
+  if (url.pathname === "/api/admin/summary" && req.method === "GET") {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+
+    const [profiles, subscriptions, savedSearches] = await Promise.all([
+      listAdminProfiles(),
+      listAdminSubscriptions(),
+      listAdminSavedSearches(),
+    ]);
+
+    return json(res, 200, {
+      summary: buildAdminSummary({ profiles, subscriptions, savedSearches }),
+      user: publicUser(admin.profile, admin.authUser),
+    });
+  }
+
+  if (url.pathname === "/api/admin/users" && req.method === "GET") {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+
+    const users = await listAdminProfiles();
+    return json(res, 200, {
+      users: users.map(publicAdminUser),
+      user: publicUser(admin.profile, admin.authUser),
+    });
   }
 
   if (url.pathname === "/api/search" && req.method === "POST") {
@@ -440,7 +470,11 @@ async function handleStripeWebhook(req, res) {
   const rawBody = await readRaw(req);
   const signature = req.headers["stripe-signature"];
 
-  if (STRIPE_WEBHOOK_SECRET && !verifyStripeSignature(rawBody, signature, STRIPE_WEBHOOK_SECRET)) {
+  if (!STRIPE_WEBHOOK_SECRET) {
+    return json(res, 503, { error: "Stripe webhook secret is not configured." });
+  }
+
+  if (!verifyStripeSignature(rawBody, signature, STRIPE_WEBHOOK_SECRET)) {
     return json(res, 400, { error: "Invalid Stripe signature." });
   }
 
@@ -542,8 +576,11 @@ function publicPlans() {
 
 function publicUser(profile, authUser) {
   const currentProfile = resetUsageIfNeeded(profile);
+  const isAdmin = isAdminUser(currentProfile, authUser);
   return {
     email: authUser.email || currentProfile.email,
+    role: isAdmin ? "admin" : currentProfile.role || "user",
+    isAdmin: isAdminUser(currentProfile, authUser),
     planId: currentProfile.plan_id || "free",
     subscriptionStatus: currentProfile.subscription_status || "free",
     searchesUsed: currentProfile.searches_used || 0,
@@ -607,6 +644,18 @@ async function requireUser(req, res) {
   return user;
 }
 
+async function requireAdmin(req, res) {
+  const user = await requireUser(req, res);
+  if (!user) return null;
+
+  if (!isAdminUser(user.profile, user.authUser)) {
+    json(res, 403, { error: "Admin access is required." });
+    return null;
+  }
+
+  return user;
+}
+
 async function getSupabaseUser(accessToken) {
   const data = await supabaseAuthRequest("/user", {
     method: "GET",
@@ -631,6 +680,7 @@ function defaultProfile(authUser) {
   return {
     user_id: authUser.id,
     email: authUser.email || "",
+    role: isAdminEmail(authUser.email) ? "admin" : "user",
     plan_id: "free",
     subscription_status: "free",
     stripe_customer_id: "",
@@ -666,6 +716,86 @@ async function updateProfile(userId, fields) {
     prefer: "return=representation",
   });
   return resetUsageIfNeeded(profile);
+}
+
+async function listAdminProfiles(limit = 500) {
+  return supabaseRest("profiles", {
+    query: `select=user_id,email,role,plan_id,subscription_status,stripe_customer_id,stripe_subscription_id,searches_used,usage_period,created_at,updated_at&order=created_at.desc&limit=${limit}`,
+  });
+}
+
+async function listAdminSubscriptions(limit = 500) {
+  return supabaseRest("subscriptions", {
+    query: `select=subscription_id,user_id,stripe_customer_id,plan_id,status,current_period_end,created_at,updated_at&order=created_at.desc&limit=${limit}`,
+  });
+}
+
+async function listAdminSavedSearches(limit = 1000) {
+  return supabaseRest("saved_searches", {
+    query: `select=user_id,search_key,last_result_count,created_at,updated_at&order=updated_at.desc&limit=${limit}`,
+  });
+}
+
+function buildAdminSummary({ profiles, subscriptions, savedSearches }) {
+  const currentPeriod = currentUsagePeriod();
+  const activeProfiles = profiles.filter(hasActiveSubscription);
+  const monthlySearches = profiles
+    .filter((profile) => profile.usage_period === currentPeriod)
+    .reduce((total, profile) => total + Number(profile.searches_used || 0), 0);
+  const estimatedMrrCents = activeProfiles.reduce(
+    (total, profile) => total + getPlanPriceCents(profile.plan_id),
+    0,
+  );
+
+  return {
+    totalUsers: profiles.length,
+    activeSubscriptions: activeProfiles.length,
+    freeUsers: profiles.filter((profile) => !hasActiveSubscription(profile)).length,
+    monthlySearches,
+    savedSearches: savedSearches.length,
+    subscriptionRecords: subscriptions.length,
+    estimatedMrrCents,
+    estimatedMrrLabel: formatCurrency(estimatedMrrCents),
+    planBreakdown: buildPlanBreakdown(profiles),
+    recentUsers: profiles.slice(0, 8).map(publicAdminUser),
+  };
+}
+
+function buildPlanBreakdown(profiles) {
+  const freeUsers = profiles.filter((profile) => !hasActiveSubscription(profile)).length;
+  const paidPlans = PLANS.map((plan) => ({
+    id: plan.id,
+    name: plan.name,
+    users: profiles.filter(
+      (profile) => hasActiveSubscription(profile) && profile.plan_id === plan.id,
+    ).length,
+    searchLimit: plan.searchLimit,
+    priceLabel: plan.priceLabel,
+  }));
+
+  return [
+    { id: "free", name: "Free", users: freeUsers, searchLimit: 50, priceLabel: "$0/mo" },
+    ...paidPlans,
+  ];
+}
+
+function publicAdminUser(profile) {
+  const currentProfile = resetUsageIfNeeded(profile);
+  const plan = PLANS.find((item) => item.id === currentProfile.plan_id);
+  return {
+    id: currentProfile.user_id,
+    email: currentProfile.email || "",
+    role: isAdminEmail(currentProfile.email) ? "admin" : currentProfile.role || "user",
+    isAdmin: isAdminUser(currentProfile, { email: currentProfile.email }),
+    planId: currentProfile.plan_id || "free",
+    planName: plan?.name || (hasActiveSubscription(currentProfile) ? "Paid" : "Free"),
+    subscriptionStatus: currentProfile.subscription_status || "free",
+    searchesUsed: Number(currentProfile.searches_used || 0),
+    searchLimit: getPlanLimit(currentProfile),
+    usagePeriod: currentProfile.usage_period || "",
+    createdAt: currentProfile.created_at || "",
+    updatedAt: currentProfile.updated_at || "",
+  };
 }
 
 async function upsertSubscription(fields) {
@@ -745,7 +875,36 @@ function canSearch(profile) {
 
 function getPlanLimit(profile) {
   if (!hasActiveSubscription(profile)) return 50;
-  return PLANS.find((plan) => plan.id === profile.plan_id)?.searchLimit || 200;
+  return PLANS.find((plan) => plan.id === profile.plan_id)?.searchLimit || 60;
+}
+
+function isAdminUser(profile, authUser) {
+  return (profile?.role || "").toLowerCase() === "admin" || isAdminEmail(authUser?.email || profile?.email);
+}
+
+function isAdminEmail(email) {
+  return ADMIN_EMAILS.has(normalizeEmail(email));
+}
+
+function parseAdminEmails(value) {
+  return new Set(
+    String(value || "")
+      .split(",")
+      .map(normalizeEmail)
+      .filter(Boolean),
+  );
+}
+
+function getPlanPriceCents(planId) {
+  const plan = PLANS.find((item) => item.id === planId);
+  const match = plan?.priceLabel.match(/\$(\d+)/);
+  return match ? Number(match[1]) * 100 : 0;
+}
+
+function formatCurrency(cents) {
+  return `$${(Number(cents || 0) / 100).toLocaleString(undefined, {
+    maximumFractionDigits: 0,
+  })}`;
 }
 
 function resetUsageIfNeeded(profile) {
@@ -858,6 +1017,7 @@ function verifyStripeSignature(body, signatureHeader, secret) {
     .update(`${timestamp}.${body.toString("utf8")}`)
     .digest("hex");
 
+  if (Buffer.byteLength(signature) !== Buffer.byteLength(expected)) return false;
   return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
 }
 

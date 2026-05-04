@@ -10,6 +10,7 @@ const exportButton = document.querySelector("#exportCsv");
 const exportFormatInput = document.querySelector("#exportFormat");
 const countryCodeInput = document.querySelector("#countryCode");
 const accountStatus = document.querySelector("#accountStatus");
+const adminLink = document.querySelector("#adminLink");
 const loginLink = document.querySelector("#loginLink");
 const logoutButton = document.querySelector("#logoutButton");
 const billingButton = document.querySelector("#billingButton");
@@ -323,6 +324,7 @@ function renderSaasState() {
   if (!saasState.apiAvailable) {
     accountStatus.textContent = "Backend offline";
     subscriptionNotice.textContent = "Start the SaaS server with npm start and open http://localhost:4173/app.html.";
+    adminLink?.classList.add("hidden");
     loginLink.classList.remove("hidden");
     logoutButton.classList.add("hidden");
     billingButton.classList.add("hidden");
@@ -332,6 +334,7 @@ function renderSaasState() {
   if (!saasState.user) {
     accountStatus.textContent = "Not signed in";
     subscriptionNotice.textContent = "Login or create an account to run lead searches and exports.";
+    adminLink?.classList.add("hidden");
     loginLink.classList.remove("hidden");
     logoutButton.classList.add("hidden");
     billingButton.classList.add("hidden");
@@ -342,6 +345,7 @@ function renderSaasState() {
   const statusLabel = user.hasActiveSubscription ? `${planName(user.planId)} plan` : "Free trial";
   accountStatus.textContent = `${user.email} · ${statusLabel}`;
   subscriptionNotice.textContent = `${user.searchesUsed}/${user.searchLimit} searches used this month. ${user.canSearch ? "Search is available." : "Upgrade to continue searching."}`;
+  adminLink?.classList.toggle("hidden", !user.isAdmin);
   loginLink.classList.add("hidden");
   logoutButton.classList.remove("hidden");
   billingButton.classList.toggle("hidden", !user.hasActiveSubscription);

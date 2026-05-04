@@ -1,6 +1,7 @@
 create table if not exists public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
+  role text not null default 'user',
   plan_id text not null default 'free',
   subscription_status text not null default 'free',
   stripe_customer_id text,
@@ -14,6 +15,12 @@ create table if not exists public.profiles (
 create unique index if not exists profiles_stripe_customer_id_idx
   on public.profiles(stripe_customer_id)
   where stripe_customer_id is not null and stripe_customer_id <> '';
+
+alter table public.profiles
+  add column if not exists role text not null default 'user';
+
+create index if not exists profiles_role_idx
+  on public.profiles(role);
 
 create table if not exists public.subscriptions (
   subscription_id text primary key,

@@ -50,6 +50,7 @@ Pages:
 - Landing page: `http://localhost:4173/`
 - Login/sign-up: `http://localhost:4173/auth.html`
 - Dashboard app: `http://localhost:4173/app.html`
+- Admin dashboard: `http://localhost:4173/admin.html`
 
 Do not use the old `file://` page for the SaaS version. Accounts, subscriptions, billing, and search quota enforcement all run through the Node server.
 
@@ -67,6 +68,24 @@ SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 The server uses Supabase Auth for account creation and login. It stores account profile, usage, saved search progress, Stripe customer ID, Stripe subscription ID, plan, and subscription status in Supabase tables. Keep the service role key server-only.
+
+## Admin setup
+
+Create a normal account first, then make that email an admin with either option:
+
+```text
+ADMIN_EMAILS=you@example.com
+```
+
+Or run this in Supabase SQL:
+
+```sql
+update public.profiles
+set role = 'admin'
+where email = 'you@example.com';
+```
+
+Admin users can open `/admin.html` to view users, paid subscriptions, estimated MRR, monthly usage, saved searches, and plan distribution.
 
 ## Stripe setup
 

@@ -26,10 +26,23 @@ test("landing page uses customer-facing proof, New York saved-search copy, and d
   assert.match(html, /Email \+ phone extraction/);
   assert.match(html, /No-website opportunities/);
   assert.match(html, /Search dentists in New York/);
+  assert.doesNotMatch(html, /\+389/);
   assert.match(html, /\$19\/mo/);
   assert.match(html, /\$39\/mo/);
   assert.match(html, /\$99\/mo/);
   assert.match(html, /id="navAuthLink"/);
+});
+
+test("paid plans use the reduced monthly search allowances", () => {
+  const html = fs.readFileSync("index.html", "utf8");
+  const server = fs.readFileSync("server.js", "utf8");
+
+  assert.match(html, /60 searches\/month/);
+  assert.match(html, /300 searches\/month/);
+  assert.match(html, /900 searches\/month/);
+  assert.match(server, /id: "starter"[\s\S]*?searchLimit: 60/);
+  assert.match(server, /id: "growth"[\s\S]*?searchLimit: 300/);
+  assert.match(server, /id: "agency"[\s\S]*?searchLimit: 900/);
 });
 
 test("landing script exposes sample search data and FAQ behavior", () => {

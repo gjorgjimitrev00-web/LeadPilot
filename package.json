@@ -3,7 +3,7 @@
     "start": "node server.js",
     "dev": "node server.js",
     "test": "node --test",
-    "check": "node --check app.js && node --check auth.js && node --check landing.js && node --check lead-filters.js && node --check searches.js && node --check search-detail.js && node --check search-cursor.js && node --check server.js"
+    "check": "node --check app.js && node --check admin.js && node --check auth.js && node --check landing.js && node --check lead-filters.js && node --check searches.js && node --check search-detail.js && node --check search-cursor.js && node --check server.js"
   },
   "engines": {
     "node": ">=20"
