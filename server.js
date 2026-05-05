@@ -154,7 +154,7 @@ const CATEGORY_PRESETS = [
   { aliases: ["school", "education", "training"], selectors: [["amenity", ["school", "college", "university", "language_school"]], ["office", ["educational_institution"]]] },
 ];
 
-const server = http.createServer(async (req, res) => {
+async function requestListener(req, res) {
   try {
     const url = new URL(req.url, APP_URL);
 
@@ -171,11 +171,16 @@ const server = http.createServer(async (req, res) => {
     console.error(error);
     return json(res, 500, { error: error.message || "Internal server error." });
   }
-});
+}
 
-server.listen(PORT, () => {
-  console.log(`Client Contact Finder SaaS running at ${APP_URL}`);
-});
+if (require.main === module) {
+  const server = http.createServer(requestListener);
+  server.listen(PORT, () => {
+    console.log(`Client Contact Finder SaaS running at ${APP_URL}`);
+  });
+}
+
+module.exports = { requestListener };
 
 async function handleApi(req, res, url) {
   if (url.pathname === "/api/me" && req.method === "GET") {
